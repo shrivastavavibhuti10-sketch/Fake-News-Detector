@@ -1,5 +1,5 @@
 # Fake News Detection 📰
-![Fake News Output](./fake_news_output.png)
+![Fake News Output](https://raw.githubusercontent.com/shrivastavavibhuti10-sketch/Fake-News-Detector/6685b6256ce4fc4dcd794191c26f5b69ec0d5a5b/fake_news_output.png)
 A machine learning project to classify news articles as *Real* or *Fake* using natural language processing techniques
 
 # Problem Statement
