@@ -1,5 +1,5 @@
 # Fake News Detection 📰
-
+![Fake News Output](fake_news_output.png)
 A machine learning project to classify news articles as *Real* or *Fake* using natural language processing techniques
 
 # Problem Statement
