@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Fake News Detection</title>
+
+<style>
+:root {
+    --bg: #f4f6f8;
+    --card: #ffffff;
+    --text: #222;
+    --fake: #e74c3c;
+    --real: #2ecc71;
+}
+
+body.dark {
+    --bg: #121212;
+    --card: #1e1e1e;
+    --text: #f1f1f1;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    transition: 0.3s;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+}
+
+.card {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+textarea {
+    width: 100%;
+    min-height: 150px;
+    padding: 10px;
+    font-size: 16px;
+    resize: none;
+}
+
+button {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background: #4f46e5;
+    color: #fff;
+}
+
+.toggle {
+    float: right;
+    cursor: pointer;
+}
+
+.progress {
+    height: 20px;
+    background: #ddd;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0;
+    transition: width 0.5s;
+}
+
+.badge {
+    padding: 8px 14px;
+    border-radius: 20px;
+    color: #fff;
+    display: inline-block;
+}
+
+.fake { background: var(--fake); }
+.real { background: var(--real); }
+
+.keyword {
+    background: yellow;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.history {
+    margin-top: 15px;
+}
+
+@media (max-width: 600px) {
+    textarea { font-size: 14px; }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h2>📰 Fake News Detection
+<span class="toggle" onclick="toggleTheme()">🌙</span>
+</h2>
+
+<div class="card">
+<form method="POST" action="/predict" onsubmit="return validateInput()">
+    <textarea id="news" name="news" placeholder="Paste news here..." oninput="countWords()"></textarea>
+    <p id="counter">Words: 0</p>
+    <button type="submit">Check News</button>
+</form>
+</div>
+
+{% if prediction %}
+<div class="card" style="margin-top:20px; animation: fade 0.6s;">
+    <h3>Prediction Result</h3>
+
+    <span class="badge {{ 'fake' if prediction=='Fake' else 'real' }}">
+        {{ prediction }}
+    </span>
+
+    <h4>Confidence</h4>
+    <div class="progress">
+        <div class="progress-bar {{ 'fake' if prediction=='Fake' else 'real' }}"
+             style="width: {{ confidence }}%;">
+        </div>
+    </div>
+    <p>{{ confidence }}%</p>
+
+    <h4>Highlighted Keywords</h4>
+    <p id="highlighted">{{ news }}</p>
+</div>
+
+<script>
+highlightKeywords();
+saveHistory("{{ prediction }}", "{{ confidence }}");
+</script>
+{% endif %}
+
+<div class="card history">
+<h3>Prediction History</h3>
+<ul id="historyList"></ul>
+</div>
+
+</div>
+
+<script>
+/* Theme */
+function toggleTheme(){
+    document.body.classList.toggle("dark");
+    localStorage.setItem("theme", document.body.classList.contains("dark"));
+}
+if(localStorage.getItem("theme") === "true"){
+    document.body.classList.add("dark");
+}
+
+/* Validation */
+function validateInput(){
+    const text = document.getElementById("news").value.trim();
+    if(text.length < 20){
+        alert("Please enter at least 20 characters.");
+        return false;
+    }
+    return true;
+}
+
+/* Word Counter */
+function countWords(){
+    const text = document.getElementById("news").value.trim();
+    document.getElementById("counter").innerText =
+        "Words: " + (text ? text.split(/\s+/).length : 0);
+}
+
+/* Keyword Highlighting */
+function highlightKeywords(){
+    let el = document.getElementById("highlighted");
+    let words = ["fake","hoax","false","breaking","shocking"];
+    let text = el.innerText;
+    words.forEach(w=>{
+        let reg = new RegExp(\\b${w}\\b, "gi");
+        text = text.replace(reg, <span class="keyword">${w}</span>);
+    });
+    el.innerHTML = text;
+}
+
+/* History */
+function saveHistory(pred, conf){
+    let h = JSON.parse(localStorage.getItem("history") || "[]");
+    h.unshift({pred, conf, time: new Date().toLocaleString()});
+    localStorage.setItem("history", JSON.stringify(h.slice(0,5)));
+    loadHistory();
+}
+
+function loadHistory(){
+    let h = JSON.parse(localStorage.getItem("history") || "[]");
+    let ul = document.getElementById("historyList");
+    ul.innerHTML = "";
+    h.forEach(i=>{
+        ul.innerHTML += <li>${i.time} - ${i.pred} (${i.conf}%)</li>;
+    });
+}
+loadHistory();
+</script>
+
+</body>
+</html>
